@@ -73,7 +73,7 @@ int create_condor_jobs()
       outRun << "condor_submit "<<job_nameT<<"\n";
     }
   outRun.close();
-  std::system("chmod +x ./runTheJobs.sh");
+  std::system("chmod +x ./*.sh");
   return 0;
 }
 
