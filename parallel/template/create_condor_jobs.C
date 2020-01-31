@@ -25,7 +25,7 @@ int create_condor_jobs()
    */
       TString unique_job_name = "job_" + convert_int_to_TString(j);
       TString where_the_code_is = "/sphenix/user/gregtom3/ephenix-sbu/condor/parallel/template";
-      TString what_code_to_execute = "root -l hello_world.C";
+      TString what_code_to_execute = "root -l hello_world.C -b";
       /* --------------------------------------------------------
    */
 
