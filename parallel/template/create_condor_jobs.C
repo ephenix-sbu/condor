@@ -37,7 +37,8 @@ int create_condor_jobs()
       TString job_nameT = outnameT+".job";
       std::ofstream outJob (job_nameT.Data());
       outJob << "Executable = " << sh_nameT << "\n";
-      outJob << "Requirements = (CPU_Experiment == \"phenix\")\n";
+      //outJob << "Requirements = (<REQUIREMENTS>)\n";
+      // Can keep any ClassAd expression here, but don't use CPU_EXPERIMENT
       outJob << "PeriodicHold = (NumJobStarts>=3 && JobStatus == 1)\n";
       outJob << "Output = " << out_nameT << "\n";
       outJob << "Error = " << err_nameT << "\n";
@@ -47,7 +48,7 @@ int create_condor_jobs()
       outJob << "Input = /dev/null\n";
       outJob << "GetEnv = False\n";
       outJob << "Initialdir = " << initial_dir << "\n";
-      outJob << "+Experiment= \"sphenix\"\n";
+      //outJob << "+Experiment= \"sphenix\"\n"; Not necessary, but may be helpful for specifics
       outJob << "+Job_Type = \"cas\"\n";
       outJob << "Notification = Always\n";
       outJob << "Notify_user = " << email << "\n";
