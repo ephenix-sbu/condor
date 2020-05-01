@@ -1,0 +1,56 @@
+#!/bin/bash
+
+# Set defaults arguments here
+user=$USER
+email="daniel.waxman+condor@stonybrook.edu"
+initial_dir=$PWD
+job_dir=$PWD
+sh_dir=$PWD
+code_dir=$PWD
+n_jobs=2
+root_ver=6
+cmd="root -l hello_world.C -b"
+
+# Recreate script to run all jobs
+> "runTheJobs.sh"
+
+# Iterate through each job to create the relevant files
+for (( i=1; i<=$n_jobs; i++ ))
+    do
+        # Grab relevant file names
+        pre="${job_dir}/job_${i}"
+        job_fn="${pre}.job"
+        # Create job file
+        echo "Executable = ${pre}.sh" > $job_fn
+        echo "PeriodicHold = (NumJobStarts>=3 && JobStatus == 1)" >> $job_fn
+        echo "Output = ${pre}.out" >> $job_fn
+        echo "Error = ${pre}.err" >> $job_fn
+        echo "Log = ${pre}.log" >> $job_fn
+        echo "Universe = vanilla" >> $job_fn
+        echo "Priority = +0" >> $job_fn
+        echo "Input = /dev/null" >> $job_fn
+        echo "GetEnv = False" >> $job_fn
+        echo "InitialDir = $initial_dir" >> $job_fn
+        echo "+Job_Type = \"cas\"" >> $job_fn
+        echo "Notification = Always" >> $job_fn
+        echo "Notify_user = $email" >> $job_fn
+        echo "Queue" >> $job_fn
+
+        # Create sh file
+        sh_fn="${pre}.sh"
+        echo "#!/bin/tsch" > $sh_fn
+        echo "setenv HOME /sphenix/u/$USER" >> $sh_fn
+        echo "source /etc/csh.login" >> $sh_fn
+        echo "foreach i (/etc/profile.d/*.csh)" >> $sh_fn
+        echo "  source \$i" >> $sh_fn
+        echo "end" >> $sh_fn
+        echo "source /opt/sphenix/core/bin/sphenix_setup.csh -n root${root_ver}" >> $sh_fn
+        echo "cd ${code_dir}" >> $sh_fn
+        echo $cmd >> $sh_fn
+
+        # Make sure job is submitted
+        echo "condor_submit $job_fn" >> "runTheJobs.sh"
+    done
+
+# All sh files should be executable
+chmod +x ./*.sh
