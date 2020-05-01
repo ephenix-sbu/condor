@@ -1,5 +1,21 @@
 #!/bin/bash
 
+function print_help() {
+    echo "This script creates a (set of) condor job files for you based on parameters."
+    echo "The defaults of these parameters can be changed in the script, or passed in as arguments."
+    echo "Argument list:"
+    echo "-c/--cmd: changes the command that Condor should run."
+    echo "-v/--root-ver: changes the version of Root that the job will use (default: 6)."
+    echo "-n/--n-jobs: specifies the number of jobs to create."
+    echo "-C/--code-dir: specifies the directory where code is (default: \$PWD)."
+    echo "-S/--sh-dir: changes the directory where the sh script should be (default: \$PWD)."
+    echo "-J/--job_dir: changes where the job files should be (default: \$PWD)."
+    echo "-I/--initial-dir: changes the initial directory (default: \$PWD)."
+    echo "-e/--email: specifies the email to notify when a job is done."
+    echo "-u/--user: specifies the user (default: \$USER)."
+    echo "-h/--help: prints the current screen."
+}
+
 # Set defaults arguments here
 user=$USER
 email="daniel.waxman+condor@stonybrook.edu"
@@ -10,6 +26,67 @@ code_dir=$PWD
 n_jobs=2
 root_ver=6
 cmd="root -l hello_world.C -b"
+
+# Take in user arguments
+while [[ $# -gt 0 ]]
+    do
+        key="$1"
+        case $key in
+        -c|--cmd)
+        cmd="$2"
+        shift
+        shift
+        ;;
+        -v|--root-ver)
+        root_ver="$2"
+        shift
+        shift
+        ;;
+        -n|--n-jobs)
+        n_jobs="$2"
+        shift
+        shift
+        ;;
+        -C|--code-dir)
+        code_dir="$2"
+        shift
+        shift
+        ;;
+        -S|--sh-dir)
+        sh_dir="$2"
+        shift
+        shift
+        ;;
+        -J|--job-dir)
+        job_dir="$2"
+        shift
+        shift
+        ;;
+        -I|--initial-dir)
+        initial_dir="$2"
+        shift
+        shift
+        ;;
+        -e|--email)
+        email="$2"
+        shift
+        shift
+        ;;
+        -u|--user)
+        user="$2"
+        shift
+        shift
+        ;;
+        -h|--help)
+        print_help;
+        shift
+        ;;
+        *)
+        shift
+        ;;
+        esac
+done
+
 
 # Recreate script to run all jobs
 > "runTheJobs.sh"
@@ -46,7 +123,10 @@ for (( i=1; i<=$n_jobs; i++ ))
         echo "end" >> $sh_fn
         echo "source /opt/sphenix/core/bin/sphenix_setup.csh -n root${root_ver}" >> $sh_fn
         echo "cd ${code_dir}" >> $sh_fn
-        echo $cmd >> $sh_fn
+        
+        cmd_tmp="$cmd"
+        export i=$i
+        echo $(envsubst <<<"$cmd_tmp") >> $sh_fn
 
         # Make sure job is submitted
         echo "condor_submit $job_fn" >> "runTheJobs.sh"
@@ -54,3 +134,4 @@ for (( i=1; i<=$n_jobs; i++ ))
 
 # All sh files should be executable
 chmod +x ./*.sh
+
